@@ -36,6 +36,7 @@ OPENSSL_EXPORT void RAND_cleanup(void);
 // Obscure functions.
 
 #if !defined(OPENSSL_WINDOWS)
+#if !defined(__ORBIS__)
 // RAND_set_urandom_fd causes the module to use a copy of |fd| for system
 // randomness rather opening /dev/urandom internally. The caller retains
 // ownership of |fd| and is at liberty to close it at any time. This is useful
@@ -46,6 +47,7 @@ OPENSSL_EXPORT void RAND_cleanup(void);
 // |RAND_set_urandom_fd| does not buffer any entropy, so it is safe to call
 // |fork| at any time after calling |RAND_set_urandom_fd|.
 OPENSSL_EXPORT void RAND_set_urandom_fd(int fd);
+#endif // __ORBIS__
 
 // RAND_enable_fork_unsafe_buffering enables efficient buffered reading of
 // /dev/urandom. It adds an overhead of a few KB of memory per thread. It must

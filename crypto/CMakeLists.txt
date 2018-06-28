@@ -85,7 +85,9 @@ function(perlasm dest src)
 endfunction()
 
 add_subdirectory(fipsmodule)
+if (BUILD_TESTS)
 add_subdirectory(test)
+endif()
 
 if(FIPS_DELOCATE OR FIPS_SHARED)
   SET_SOURCE_FILES_PROPERTIES(fipsmodule/bcm.o PROPERTIES EXTERNAL_OBJECT true)
@@ -445,7 +447,7 @@ endif()
 
 SET_TARGET_PROPERTIES(crypto PROPERTIES LINKER_LANGUAGE C)
 
-if(NOT MSVC AND NOT ANDROID)
+if(NOT MSVC AND NOT ANDROID AND NOT PS4)
   target_link_libraries(crypto pthread)
 endif()
 
@@ -455,6 +457,7 @@ if(USE_CUSTOM_LIBCXX)
   target_link_libraries(crypto libcxx)
 endif()
 
+if (BUILD_TESTS)
 add_executable(
   crypto_test
 
@@ -529,6 +532,8 @@ if(WIN32)
   target_link_libraries(crypto_test ws2_32)
 endif()
 add_dependencies(all_tests crypto_test)
+
+endif() # BUILD_TESTS
 
 ### Install ###
 install(

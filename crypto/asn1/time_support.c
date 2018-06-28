@@ -68,10 +68,12 @@
 
 struct tm *OPENSSL_gmtime(const time_t *time, struct tm *result) {
 #if defined(OPENSSL_WINDOWS)
-  if (gmtime_s(result, time)) {
+  if (gmtime_s(time, result)) {
     return NULL;
   }
   return result;
+#elif defined(__ORBIS__)
+  return gmtime_s(time, result);
 #else
   return gmtime_r(time, result);
 #endif

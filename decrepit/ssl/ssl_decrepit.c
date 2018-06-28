@@ -110,7 +110,7 @@
 
 #include <openssl/ssl.h>
 
-#if !defined(OPENSSL_WINDOWS) && !defined(OPENSSL_PNACL)
+#if !defined(OPENSSL_WINDOWS) && !defined(OPENSSL_PNACL) && !defined(__ORBIS__)
 
 #include <dirent.h>
 #include <errno.h>

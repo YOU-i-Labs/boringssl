@@ -62,6 +62,10 @@
 #include <openssl/pem.h>
 #include <openssl/thread.h>
 
+#if defined(YI_PORT_FILE_REQUIRED)
+#include <YiPort.h>
+#endif 
+
 #ifndef OPENSSL_NO_STDIO
 
 static int by_file_ctrl(X509_LOOKUP *ctx, int cmd, const char *argc,
