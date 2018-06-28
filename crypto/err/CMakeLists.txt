@@ -1,7 +1,7 @@
 include_directories(../../include)
 
-add_custom_command(
-  OUTPUT err_data.c
+add_custom_target(generate_err_data
+  BYPRODUCTS err_data.c
   COMMAND ${GO_EXECUTABLE} run err_data_generate.go > ${CMAKE_CURRENT_BINARY_DIR}/err_data.c
   DEPENDS
   err_data_generate.go
@@ -38,3 +38,5 @@ add_library(
   err.c
   err_data.c
 )
+
+add_dependencies(err generate_err_data)

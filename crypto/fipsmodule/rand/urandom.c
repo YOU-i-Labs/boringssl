@@ -18,7 +18,7 @@
 
 #include <openssl/rand.h>
 
-#if !defined(OPENSSL_WINDOWS) && !defined(OPENSSL_FUCHSIA) && \
+#if !defined(OPENSSL_WINDOWS) && !defined(OPENSSL_PS4) && !defined(OPENSSL_FUCHSIA) && \
     !defined(BORINGSSL_UNSAFE_DETERMINISTIC_MODE) && !defined(OPENSSL_TRUSTY)
 
 #include <assert.h>
@@ -296,5 +296,17 @@ void CRYPTO_sysrand(uint8_t *out, size_t requested) {
 #endif
 }
 
-#endif /* !OPENSSL_WINDOWS && !defined(OPENSSL_FUCHSIA) && \
+#elif defined(OPENSSL_PS4) && defined(YI_PORT_FILE_REQUIRED) && !defined(BORINGSSL_UNSAFE_DETERMINISTIC_MODE)
+
+#include <YiPort.h>
+
+void CRYPTO_sysrand(uint8_t *out, size_t requested) {
+  if (requested == 0) {
+    return;
+  }
+
+  YiPortGetRandomNumber((void *)out, requested);
+}
+
+#endif /* !OPENSSL_WINDOWS && !OPENSSL_PS4 && !defined(OPENSSL_FUCHSIA) && \
           !BORINGSSL_UNSAFE_DETERMINISTIC_MODE && !OPENSSL_TRUSTY */

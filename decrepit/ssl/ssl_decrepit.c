@@ -110,7 +110,7 @@
 
 #include <openssl/ssl.h>
 
-#if !defined(OPENSSL_WINDOWS) && !defined(OPENSSL_PNACL)
+#if !defined(OPENSSL_WINDOWS) && !defined(OPENSSL_PNACL) && !defined(OPENSSL_PS4)
 
 #include <dirent.h>
 #include <errno.h>

@@ -10,13 +10,15 @@ add_library(
   p5_pbev2.c
 )
 
-add_executable(
-  pkcs12_test
+if (BUILD_TESTS)
+	add_executable(
+	  pkcs12_test
 
-  pkcs12_test.cc
+	  pkcs12_test.cc
 
-  $<TARGET_OBJECTS:test_support>
-)
+	  $<TARGET_OBJECTS:test_support>
+	)
 
-target_link_libraries(pkcs12_test crypto)
-add_dependencies(all_tests pkcs12_test)
+	target_link_libraries(pkcs12_test crypto)
+	add_dependencies(all_tests pkcs12_test)
+endif()

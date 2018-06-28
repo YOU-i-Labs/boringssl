@@ -123,8 +123,10 @@ add_subdirectory(x509v3)
 add_subdirectory(pkcs7)
 add_subdirectory(pkcs8)
 
-# Test support code
-add_subdirectory(test)
+if(BUILD_TESTS)
+  # Test support code
+  add_subdirectory(test)
+endif()
 
 add_subdirectory(fipsmodule)
 
@@ -209,61 +211,63 @@ endif()
 
 SET_TARGET_PROPERTIES(crypto PROPERTIES LINKER_LANGUAGE C)
 
-if(NOT MSVC AND NOT ANDROID)
+if(NOT MSVC AND NOT ANDROID AND NOT PS4)
   target_link_libraries(crypto pthread)
 endif()
 
-# TODO(davidben): Convert the remaining tests to GTest.
-add_executable(
-  crypto_test
+if(BUILD_TESTS)
+  # TODO(davidben): Convert the remaining tests to GTest.
+  add_executable(
+    crypto_test
 
-  asn1/asn1_test.cc
-  base64/base64_test.cc
-  bio/bio_test.cc
-  bytestring/bytestring_test.cc
-  chacha/chacha_test.cc
-  cipher_extra/aead_test.cc
-  cipher_extra/cipher_test.cc
-  cmac/cmac_test.cc
-  compiler_test.cc
-  constant_time_test.cc
-  curve25519/ed25519_test.cc
-  curve25519/spake25519_test.cc
-  curve25519/x25519_test.cc
-  ecdh/ecdh_test.cc
-  dh/dh_test.cc
-  digest_extra/digest_test.cc
-  dsa/dsa_test.cc
-  err/err_test.cc
-  evp/evp_extra_test.cc
-  evp/pbkdf_test.cc
-  fipsmodule/aes/aes_test.cc
-  fipsmodule/bn/bn_test.cc
-  fipsmodule/ec/ec_test.cc
-  fipsmodule/modes/gcm_test.cc
-  fipsmodule/rand/ctrdrbg_test.cc
-  hkdf/hkdf_test.cc
-  hmac_extra/hmac_test.cc
-  lhash/lhash_test.cc
-  pkcs7/pkcs7_test.cc
-  pkcs8/pkcs8_test.cc
-  poly1305/poly1305_test.cc
-  pool/pool_test.cc
-  refcount_test.cc
-  rsa_extra/rsa_test.cc
-  test/file_test_gtest.cc
-  thread_test.cc
+    asn1/asn1_test.cc
+    base64/base64_test.cc
+    bio/bio_test.cc
+    bytestring/bytestring_test.cc
+    chacha/chacha_test.cc
+    cipher_extra/aead_test.cc
+    cipher_extra/cipher_test.cc
+    cmac/cmac_test.cc
+    compiler_test.cc
+    constant_time_test.cc
+    curve25519/ed25519_test.cc
+    curve25519/spake25519_test.cc
+    curve25519/x25519_test.cc
+    ecdh/ecdh_test.cc
+    dh/dh_test.cc
+    digest_extra/digest_test.cc
+    dsa/dsa_test.cc
+    err/err_test.cc
+    evp/evp_extra_test.cc
+    evp/pbkdf_test.cc
+    fipsmodule/aes/aes_test.cc
+    fipsmodule/bn/bn_test.cc
+    fipsmodule/ec/ec_test.cc
+    fipsmodule/modes/gcm_test.cc
+    fipsmodule/rand/ctrdrbg_test.cc
+    hkdf/hkdf_test.cc
+    hmac_extra/hmac_test.cc
+    lhash/lhash_test.cc
+    pkcs7/pkcs7_test.cc
+    pkcs8/pkcs8_test.cc
+    poly1305/poly1305_test.cc
+    pool/pool_test.cc
+    refcount_test.cc
+    rsa_extra/rsa_test.cc
+    test/file_test_gtest.cc
+    thread_test.cc
 
-  $<TARGET_OBJECTS:crypto_test_data>
-  $<TARGET_OBJECTS:gtest_main>
-  $<TARGET_OBJECTS:test_support>
-)
+    $<TARGET_OBJECTS:crypto_test_data>
+    $<TARGET_OBJECTS:gtest_main>
+    $<TARGET_OBJECTS:test_support>
+  )
 
-target_link_libraries(crypto_test crypto gtest)
-if (WIN32)
-  target_link_libraries(crypto_test ws2_32)
+  target_link_libraries(crypto_test crypto gtest)
+  if (WIN32)
+    target_link_libraries(crypto_test ws2_32)
+  endif()
+  add_dependencies(all_tests crypto_test)
 endif()
-add_dependencies(all_tests crypto_test)
 
 ### Install ###
 install(

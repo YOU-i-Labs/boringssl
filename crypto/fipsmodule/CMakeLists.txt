@@ -194,55 +194,59 @@ else()
   )
 endif()
 
-add_executable(
-  example_mul
+if(BUILD_TOOLS)
+  add_executable(
+    example_mul
 
-  ec/example_mul.c
+    ec/example_mul.c
 
-  $<TARGET_OBJECTS:test_support>
-)
+    $<TARGET_OBJECTS:test_support>
+  )
 
-target_link_libraries(example_mul crypto)
+  target_link_libraries(example_mul crypto)
+endif()
 
-add_executable(
-  p256-x86_64_test
+if(BUILD_TESTS)
+  add_executable(
+    p256-x86_64_test
 
-  ec/p256-x86_64_test.cc
+    ec/p256-x86_64_test.cc
 
-  $<TARGET_OBJECTS:test_support>
-)
+    $<TARGET_OBJECTS:test_support>
+  )
 
-target_link_libraries(p256-x86_64_test crypto)
-add_dependencies(all_tests example_mul p256-x86_64_test)
+  target_link_libraries(p256-x86_64_test crypto)
+  add_dependencies(all_tests example_mul p256-x86_64_test)
 
-add_executable(
-  ecdsa_test
+  add_executable(
+    ecdsa_test
 
-  ecdsa/ecdsa_test.cc
+    ecdsa/ecdsa_test.cc
 
-  $<TARGET_OBJECTS:test_support>
-)
+    $<TARGET_OBJECTS:test_support>
+  )
 
-target_link_libraries(ecdsa_test crypto)
+  target_link_libraries(ecdsa_test crypto)
 
-add_executable(
-  ecdsa_sign_test
+  add_executable(
+    ecdsa_sign_test
 
-  ecdsa/ecdsa_sign_test.cc
+    ecdsa/ecdsa_sign_test.cc
 
-  $<TARGET_OBJECTS:test_support>
-)
+    $<TARGET_OBJECTS:test_support>
+  )
 
-target_link_libraries(ecdsa_sign_test crypto)
+  target_link_libraries(ecdsa_sign_test crypto)
 
-add_executable(
-  ecdsa_verify_test
+  add_executable(
+    ecdsa_verify_test
 
-  ecdsa/ecdsa_verify_test.cc
+    ecdsa/ecdsa_verify_test.cc
 
-  $<TARGET_OBJECTS:test_support>
-)
+    $<TARGET_OBJECTS:test_support>
+  )
 
-target_link_libraries(ecdsa_verify_test crypto)
+  target_link_libraries(ecdsa_verify_test crypto)
 
-add_dependencies(all_tests ecdsa_test ecdsa_sign_test ecdsa_verify_test)
+  add_dependencies(all_tests ecdsa_test ecdsa_sign_test ecdsa_verify_test)
+endif()

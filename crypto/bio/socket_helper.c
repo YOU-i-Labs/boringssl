@@ -22,14 +22,16 @@
 #include <string.h>
 #include <sys/types.h>
 
-#if !defined(OPENSSL_WINDOWS)
-#include <netdb.h>
-#include <unistd.h>
-#else
+#if defined(OPENSSL_WINDOWS)
 OPENSSL_MSVC_PRAGMA(warning(push, 3))
 #include <winsock2.h>
 #include <ws2tcpip.h>
 OPENSSL_MSVC_PRAGMA(warning(pop))
+#elif defined(OPENSSL_PS4)
+#include <YiPort.h>
+#else
+#include <netdb.h>
+#include <unistd.h>
 #endif
 
 #include "internal.h"

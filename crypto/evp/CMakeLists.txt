@@ -21,14 +21,15 @@ add_library(
   sign.c
 )
 
+if (BUILD_TESTS)
+    add_executable(
+      evp_test
 
-add_executable(
-  evp_test
+      evp_test.cc
 
-  evp_test.cc
+      $<TARGET_OBJECTS:test_support>
+    )
 
-  $<TARGET_OBJECTS:test_support>
-)
-
-target_link_libraries(evp_test crypto)
-add_dependencies(all_tests evp_test)
+    target_link_libraries(evp_test crypto)
+    add_dependencies(all_tests evp_test)
+endif()

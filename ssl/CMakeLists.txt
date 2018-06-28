@@ -42,20 +42,22 @@ add_library(
 
 target_link_libraries(ssl crypto)
 
-add_executable(
-  ssl_test
+if (BUILD_TESTS)
+  add_executable(
+    ssl_test
 
-  ssl_test.cc
+    ssl_test.cc
 
-  $<TARGET_OBJECTS:gtest_main>
-  $<TARGET_OBJECTS:test_support>
-)
+    $<TARGET_OBJECTS:gtest_main>
+    $<TARGET_OBJECTS:test_support>
+  )
 
-target_link_libraries(ssl_test ssl crypto gtest)
-if (WIN32)
-  target_link_libraries(ssl_test ws2_32)
+  target_link_libraries(ssl_test ssl crypto gtest)
+  if (WIN32)
+    target_link_libraries(ssl_test ws2_32)
+  endif()
+  add_dependencies(all_tests ssl_test)
 endif()
-add_dependencies(all_tests ssl_test)
 
 ### Install ###
 install(
