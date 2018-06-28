@@ -69,6 +69,10 @@
 
 #include "../internal.h"
 
+#if defined(YI_PORT_FILE_REQUIRED)
+#include <YiPort.h>
+#endif 
+
 typedef struct lookup_dir_hashes_st {
     unsigned long hash;
     int suffix;

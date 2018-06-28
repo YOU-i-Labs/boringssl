@@ -26,8 +26,9 @@ add_dependencies(decrepit global_target)
 
 target_link_libraries(decrepit crypto ssl)
 
-add_executable(
-  decrepit_test
+if (BUILD_TESTS)
+  add_executable(
+    decrepit_test
 
   blowfish/blowfish_test.cc
   cast/cast_test.cc
@@ -45,6 +46,8 @@ if(WIN32)
   target_link_libraries(decrepit_test ws2_32)
 endif()
 add_dependencies(all_tests decrepit_test)
+
+endif() # BUILD_TESTS
 
 ### Install ###
 install(

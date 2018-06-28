@@ -45,6 +45,8 @@ add_dependencies(ssl global_target)
 
 target_link_libraries(ssl crypto)
 
+if (BUILD_TESTS)
+
 add_executable(
   ssl_test
 
@@ -61,6 +63,8 @@ if(WIN32)
   target_link_libraries(ssl_test ws2_32)
 endif()
 add_dependencies(all_tests ssl_test)
+
+endif() # BUILD_TESTS
 
 ### Install ###
 install(

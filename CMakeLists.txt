@@ -20,6 +20,9 @@ set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
 set(targets_export_name "${PROJECT_NAME}Targets")
 set(namespace "${PROJECT_NAME}::")
 
+option(BUILD_TOOLS "Build boringssl tools." ON)
+option(BUILD_TESTS "Building boringssl tests." ON)
+
 if(WIN32)
   # On Windows, prefer cl over gcc if both are available. By default most of
   # the CMake generators prefer gcc, even on Windows.
@@ -554,31 +557,37 @@ if(USE_CUSTOM_LIBCXX)
   target_link_libraries(libcxx libcxxabi)
 endif()
 
-# Add minimal googletest targets. The provided one has many side-effects, and
-# googletest has a very straightforward build.
-add_library(boringssl_gtest third_party/googletest/src/gtest-all.cc)
-target_include_directories(boringssl_gtest PRIVATE third_party/googletest)
+if(BUILD_TESTS)
+  # Add minimal googletest targets. The provided one has many side-effects, and
+  # googletest has a very straightforward build.
+  add_library(boringssl_gtest third_party/googletest/src/gtest-all.cc)
+  target_include_directories(boringssl_gtest PRIVATE third_party/googletest)
 
-include_directories(third_party/googletest/include)
+  include_directories(third_party/googletest/include)
 
-# Declare a dummy target to build all unit tests. Test targets should inject
-# themselves as dependencies next to the target definition.
-add_custom_target(all_tests)
+  # Declare a dummy target to build all unit tests. Test targets should inject
+  # themselves as dependencies next to the target definition.
+  add_custom_target(all_tests)
 
-add_custom_command(
-  OUTPUT crypto_test_data.cc
-  COMMAND ${GO_EXECUTABLE} run util/embed_test_data.go ${CRYPTO_TEST_DATA} >
-  ${CMAKE_CURRENT_BINARY_DIR}/crypto_test_data.cc
-  DEPENDS util/embed_test_data.go ${CRYPTO_TEST_DATA}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+  add_custom_command(
+    OUTPUT crypto_test_data.cc
+    COMMAND ${GO_EXECUTABLE} run util/embed_test_data.go ${CRYPTO_TEST_DATA} >
+    ${CMAKE_CURRENT_BINARY_DIR}/crypto_test_data.cc
+    DEPENDS util/embed_test_data.go ${CRYPTO_TEST_DATA}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_library(crypto_test_data OBJECT crypto_test_data.cc)
+  add_library(crypto_test_data OBJECT crypto_test_data.cc)
+endif()
 
 add_subdirectory(crypto)
 add_subdirectory(ssl)
-add_subdirectory(ssl/test)
-add_subdirectory(fipstools)
-add_subdirectory(tool)
+if (BUILD_TESTS)
+  add_subdirectory(ssl/test)
+endif()
+if (BUILD_TOOLS)
+  add_subdirectory(fipstools)
+  add_subdirectory(tool)
+endif()
 add_subdirectory(decrepit)
 
 if(FUZZ)
@@ -602,6 +611,7 @@ if(UNIX AND NOT APPLE AND NOT ANDROID)
   set(HANDSHAKER_ARGS "-handshaker-path" $<TARGET_FILE:handshaker>)
 endif()
 
+if (BUILD_TESTS)
 add_custom_target(
     run_tests
     COMMAND ${GO_EXECUTABLE} run util/all_tests.go -build-dir
@@ -612,6 +622,7 @@ add_custom_target(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     DEPENDS all_tests bssl_shim handshaker
     ${MAYBE_USES_TERMINAL})
+endif()
 
 ### install
 
