@@ -135,7 +135,7 @@ static int sock_write(BIO *b, const char *in, int inl) {
 #if defined(OPENSSL_WINDOWS)
   ret = send(b->num, in, inl, 0);
 #elif defined(OPENSSL_PS4)
-  ret = sceNetSend(b->num, in, inl, 0)
+  ret = sceNetSend(b->num, in, inl, 0);
 #else
   ret = write(b->num, in, inl);
 #endif
