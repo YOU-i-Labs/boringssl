@@ -70,6 +70,10 @@ OPENSSL_MSVC_PRAGMA(warning(pop))
 OPENSSL_MSVC_PRAGMA(comment(lib, "Ws2_32.lib"))
 #endif
 
+#if defined(OPENSSL_PS4)
+#include <net.h>
+#endif
+
 #include "internal.h"
 
 
@@ -130,6 +134,8 @@ static int sock_write(BIO *b, const char *in, int inl) {
   bio_clear_socket_error();
 #if defined(OPENSSL_WINDOWS)
   ret = send(b->num, in, inl, 0);
+#elif defined(OPENSSL_PS4)
+  ret = sceNetSend(b->num, in, inl, 0)
 #else
   ret = write(b->num, in, inl);
 #endif
