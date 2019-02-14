@@ -60,18 +60,16 @@
 #include <fcntl.h>
 #include <string.h>
 
-#if !defined(OPENSSL_WINDOWS)
-#include <unistd.h>
-#else
+#if defined(OPENSSL_WINDOWS)
 OPENSSL_MSVC_PRAGMA(warning(push, 3))
 #include <winsock2.h>
 OPENSSL_MSVC_PRAGMA(warning(pop))
 
 OPENSSL_MSVC_PRAGMA(comment(lib, "Ws2_32.lib"))
-#endif
-
-#if defined(OPENSSL_PS4)
-#include <net.h>
+#elif defined(OPENSSL_PS4)
+#include <YiPort.h>
+#else
+#include <unistd.h>
 #endif
 
 #include "internal.h"
@@ -116,6 +114,8 @@ static int sock_read(BIO *b, char *out, int outl) {
   bio_clear_socket_error();
 #if defined(OPENSSL_WINDOWS)
   ret = recv(b->num, out, outl, 0);
+#elif defined(OPENSSL_PS4)
+  ret = YiPortReceive(b->num, out, outl, 0);
 #else
   ret = read(b->num, out, outl);
 #endif
@@ -135,7 +135,7 @@ static int sock_write(BIO *b, const char *in, int inl) {
 #if defined(OPENSSL_WINDOWS)
   ret = send(b->num, in, inl, 0);
 #elif defined(OPENSSL_PS4)
-  ret = sceNetSend(b->num, in, inl, 0);
+  ret = YiPortSend(b->num, in, inl, 0);
 #else
   ret = write(b->num, in, inl);
 #endif
