@@ -68,6 +68,7 @@ OPENSSL_MSVC_PRAGMA(warning(pop))
 OPENSSL_MSVC_PRAGMA(comment(lib, "Ws2_32.lib"))
 #elif defined(OPENSSL_PS4)
 #include <YiPort.h>
+#include <unistd.h>
 #else
 #include <unistd.h>
 #endif
