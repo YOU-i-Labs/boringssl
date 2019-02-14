@@ -116,7 +116,7 @@ static int sock_read(BIO *b, char *out, int outl) {
 #if defined(OPENSSL_WINDOWS)
   ret = recv(b->num, out, outl, 0);
 #elif defined(OPENSSL_PS4)
-  ret = YiPortReceive(b->num, out, outl, 0);
+  ret = YiNetReceive(b->num, out, outl, 0);
 #else
   ret = read(b->num, out, outl);
 #endif
@@ -136,7 +136,7 @@ static int sock_write(BIO *b, const char *in, int inl) {
 #if defined(OPENSSL_WINDOWS)
   ret = send(b->num, in, inl, 0);
 #elif defined(OPENSSL_PS4)
-  ret = YiPortSend(b->num, in, inl, 0);
+  ret = YiNetSend(b->num, in, inl, 0);
 #else
   ret = write(b->num, in, inl);
 #endif
