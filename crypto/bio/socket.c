@@ -62,14 +62,17 @@
 #include <fcntl.h>
 #include <string.h>
 
-#if !defined(OPENSSL_WINDOWS)
-#include <unistd.h>
-#else
+#if defined(OPENSSL_WINDOWS)
 OPENSSL_MSVC_PRAGMA(warning(push, 3))
 #include <winsock2.h>
 OPENSSL_MSVC_PRAGMA(warning(pop))
 
 OPENSSL_MSVC_PRAGMA(comment(lib, "Ws2_32.lib"))
+#elif defined(__ORBIS__)
+#include <YiPort.h>
+#include <unistd.h>
+#else
+#include <unistd.h>
 #endif
 
 #include "internal.h"
@@ -114,6 +117,8 @@ static int sock_read(BIO *b, char *out, int outl) {
   bio_clear_socket_error();
 #if defined(OPENSSL_WINDOWS)
   ret = recv(b->num, out, outl, 0);
+#elif defined(__ORBIS__)
+  ret = YiNetReceive(b->num, out, outl, 0);
 #else
   ret = read(b->num, out, outl);
 #endif
@@ -132,6 +137,8 @@ static int sock_write(BIO *b, const char *in, int inl) {
   bio_clear_socket_error();
 #if defined(OPENSSL_WINDOWS)
   ret = send(b->num, in, inl, 0);
+#elif defined(__ORBIS__)
+  ret = YiNetSend(b->num, in, inl, 0);
 #else
   ret = write(b->num, in, inl);
 #endif
