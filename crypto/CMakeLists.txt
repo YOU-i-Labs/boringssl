@@ -501,3 +501,13 @@ if(WIN32)
   target_link_libraries(crypto_test ws2_32)
 endif()
 add_dependencies(all_tests crypto_test)
+
+### Install ###
+install(
+  TARGETS crypto
+  EXPORT "${targets_export_name}"
+  LIBRARY DESTINATION "lib"
+  ARCHIVE DESTINATION "lib"
+  RUNTIME DESTINATION "bin"
+  INCLUDES DESTINATION "${include_install_dir}"
+  )
