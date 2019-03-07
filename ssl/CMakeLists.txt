@@ -62,3 +62,13 @@ if(WIN32)
   target_link_libraries(ssl_test ws2_32)
 endif()
 add_dependencies(all_tests ssl_test)
+
+### Install ###
+install(
+  TARGETS ssl
+  EXPORT "${targets_export_name}"
+  LIBRARY DESTINATION "lib"
+  ARCHIVE DESTINATION "lib"
+  RUNTIME DESTINATION "bin"
+  INCLUDES DESTINATION "${include_install_dir}"
+  )
