@@ -60,6 +60,13 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#if defined(_MSC_VER)
+#include <winapifamily.h>
+#if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+#define OPENSSL_WINDOWS_UNIVERSAL
+#endif
+#endif
+
 #if defined(__MINGW32__)
 // stdio.h is needed on MinGW for __MINGW_PRINTF_FORMAT.
 #include <stdio.h>

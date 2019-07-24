@@ -47,6 +47,15 @@ if(NOT OPENSSL_NO_ASM)
       endforeach()
     endif()
   else()
+
+    find_program(NASM_EXECUTABLE
+    nasm
+    HINTS
+    ${NASM_ROOT}/bin
+    NO_DEFAULT_PATH
+    )
+    set(CMAKE_ASM_NASM_COMPILER ${NASM_EXECUTABLE})
+
     if(${ARCH} STREQUAL "x86_64")
       set(PERLASM_STYLE nasm)
     else()
@@ -506,6 +515,7 @@ endif()
 add_dependencies(all_tests crypto_test)
 
 endif() # BUILD_TESTS
+
 
 ### Install ###
 install(

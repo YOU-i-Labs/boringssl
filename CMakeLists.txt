@@ -6,6 +6,13 @@ if(POLICY CMP0025)
   cmake_policy(SET CMP0025 NEW)
 endif()
 
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/HunterGate.cmake)
+HunterGate(
+    URL "https://api.github.com/repos/You-i-Labs/Hunter/tarball/v0.23.190-youi1"
+    HTTPHEADER "Authorization: token ${GITHUB_ACCESS_TOKEN}"
+    SHA1 "02e1ae2577d82bf1522a58650e1a35486cc9fbdc"
+)
+
 # Defer enabling C and CXX languages.
 project(BoringSSL VERSION 0.0.0 LANGUAGES NONE)
 
@@ -33,6 +40,9 @@ include(sources.cmake)
 
 enable_language(C)
 enable_language(CXX)
+
+hunter_add_package(NASM)
+
 
 # This is a dummy target which all other targets depend on (manually - see other
 # CMakeLists.txt files). This gives us a hook to add any targets which need to
@@ -127,7 +137,10 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCXX OR CLANG)
   # Note clang-cl is odd and sets both CLANG and MSVC. We base our configuration
   # primarily on our normal Clang one.
-  set(C_CXX_FLAGS "-Werror -Wformat=2 -Wsign-compare -Wmissing-field-initializers -Wwrite-strings")
+  set(C_CXX_FLAGS "-Wformat=2 -Wsign-compare -Wmissing-field-initializers -Wwrite-strings")
+  if(NOT PS4)
+    set(C_CXX_FLAGS "${C_CXX_FLAGS} -Werror")
+  endif()
   if(MSVC)
     # clang-cl sets different default warnings than clang. It also treats -Wall
     # as -Weverything, to match MSVC. Instead -W3 is the alias for -Wall.
@@ -241,8 +254,8 @@ elseif(MSVC)
                             ${MSVC_DISABLED_WARNINGS_LIST})
   string(REPLACE "C" " -w4" MSVC_LEVEL4_WARNINGS_STR
                             ${MSVC_LEVEL4_WARNINGS_LIST})
-  set(CMAKE_C_FLAGS   "-utf-8 -Wall -WX ${MSVC_DISABLED_WARNINGS_STR} ${MSVC_LEVEL4_WARNINGS_STR}")
-  set(CMAKE_CXX_FLAGS "-utf-8 -Wall -WX ${MSVC_DISABLED_WARNINGS_STR} ${MSVC_LEVEL4_WARNINGS_STR}")
+  set(CMAKE_C_FLAGS   "-utf-8 -Wall ${MSVC_DISABLED_WARNINGS_STR} ${MSVC_LEVEL4_WARNINGS_STR}")
+  set(CMAKE_CXX_FLAGS "-utf-8 -Wall ${MSVC_DISABLED_WARNINGS_STR} ${MSVC_LEVEL4_WARNINGS_STR}")
 endif()
 
 if(WIN32)
@@ -435,6 +448,10 @@ function(go_executable dest package)
                        DEPFILE ${depfile})
   endif()
 endfunction()
+
+if (UWP)
+  set(CMAKE_SYSTEM_PROCESSOR "x86_64")
+endif()
 
 # CMake's iOS support uses Apple's multiple-architecture toolchain. It takes an
 # architecture list from CMAKE_OSX_ARCHITECTURES, leaves CMAKE_SYSTEM_PROCESSOR

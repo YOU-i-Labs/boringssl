@@ -14,7 +14,26 @@
 
 #include <openssl/rand.h>
 
-#if defined(OPENSSL_WINDOWS) && !defined(BORINGSSL_UNSAFE_DETERMINISTIC_MODE)
+#if defined(OPENSSL_WINDOWS_UNIVERSAL)
+
+void CRYPTO_sysrand(uint8_t *out, size_t requested) {
+  while (requested > 0) {
+    unsigned int output_bytes_this_pass = sizeof(unsigned int);
+    if (requested < output_bytes_this_pass) {
+      output_bytes_this_pass = (unsigned int)requested;
+    }
+    unsigned int random = 0;
+    rand_s(&random);
+    memcpy(out, &random, output_bytes_this_pass);
+
+    requested -= output_bytes_this_pass;
+    out += output_bytes_this_pass;
+  }
+  return;
+}
+
+
+#elif defined(OPENSSL_WINDOWS) && !defined(BORINGSSL_UNSAFE_DETERMINISTIC_MODE)
 
 #include <limits.h>
 #include <stdlib.h>
