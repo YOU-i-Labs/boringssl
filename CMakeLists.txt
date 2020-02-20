@@ -28,7 +28,7 @@ include(sources.cmake)
 enable_language(C)
 enable_language(CXX)
 
-if(PS4)
+if(PS4 OR PS5)
   add_definitions(-DOPENSSL_PS4)
 endif()
 

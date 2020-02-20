@@ -211,7 +211,7 @@ endif()
 
 SET_TARGET_PROPERTIES(crypto PROPERTIES LINKER_LANGUAGE C)
 
-if(NOT MSVC AND NOT ANDROID AND NOT PS4)
+if(NOT MSVC AND NOT ANDROID AND NOT PS4 AND NOT PS5)
   target_link_libraries(crypto pthread)
 endif()
 
