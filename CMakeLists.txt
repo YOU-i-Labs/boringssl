@@ -234,6 +234,7 @@ elseif(MSVC)
               # /Qspectre switch specified
       "C4090" #'function': different 'const' qualifiers
       "C4133" #'function': incompatible types - from 'tm *' to 'const time_t *const '
+      "C4065" # switch statement contains 'default' but no 'case' labels
       )
   set(MSVC_LEVEL4_WARNINGS_LIST
       # See https://connect.microsoft.com/VisualStudio/feedback/details/1217660/warning-c4265-when-using-functional-header
