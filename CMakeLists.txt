@@ -127,7 +127,7 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCXX OR CLANG)
   # Note clang-cl is odd and sets both CLANG and MSVC. We base our configuration
   # primarily on our normal Clang one.
-  if (TIZEN-NACL)
+  if (TIZEN-NACL OR PLAYSTATION)
     set(C_CXX_FLAGS "-Wformat=2 -Wsign-compare -Wmissing-field-initializers -Wwrite-strings")
   else()
     set(C_CXX_FLAGS "-Werror -Wformat=2 -Wsign-compare -Wmissing-field-initializers -Wwrite-strings")
@@ -270,7 +270,9 @@ if((CMAKE_COMPILER_IS_GNUCXX AND CMAKE_C_COMPILER_VERSION VERSION_GREATER "4.7.9
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCXX)
+if (PLAYSTATION)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+elseif(CMAKE_COMPILER_IS_GNUCXX)
   if((CMAKE_C_COMPILER_VERSION VERSION_GREATER "4.8.99") OR CLANG)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
   else()
