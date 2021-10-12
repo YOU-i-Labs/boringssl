@@ -83,6 +83,9 @@
 extern "C" {
 #endif
 
+#if defined(X509_NAME)
+#undef X509_NAME
+#endif
 
 #if defined(__x86_64) || defined(_M_AMD64) || defined(_M_X64)
 #define OPENSSL_64_BIT
