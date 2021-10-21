@@ -285,7 +285,7 @@ ctr128_f aes_ctr_set_key(AES_KEY *aes_key, GCM128_KEY *gcm_key,
 #endif
 
 static EVP_AES_GCM_CTX *aes_gcm_from_cipher_ctx(EVP_CIPHER_CTX *ctx) {
-#if defined(__GNUC__) || defined(__clang__)
+#if (defined(__GNUC__) || defined(__clang__)) && !(defined(__ORBIS__) || defined(__PROSPERO__))
   OPENSSL_STATIC_ASSERT(
       alignof(EVP_AES_GCM_CTX) <= 16,
       "EVP_AES_GCM_CTX needs more alignment than this function provides");
@@ -870,7 +870,7 @@ static int aead_aes_gcm_init_impl(struct aead_aes_gcm_ctx *gcm_ctx,
 OPENSSL_STATIC_ASSERT(sizeof(((EVP_AEAD_CTX *)NULL)->state) >=
                           sizeof(struct aead_aes_gcm_ctx),
                       "AEAD state is too small");
-#if defined(__GNUC__) || defined(__clang__)
+#if (defined(__GNUC__) || defined(__clang__)) && !(defined(__ORBIS__) || defined(__PROSPERO__))
 OPENSSL_STATIC_ASSERT(alignof(union evp_aead_ctx_st_state) >=
                           alignof(struct aead_aes_gcm_ctx),
                       "AEAD state has insufficient alignment");
@@ -1043,7 +1043,7 @@ struct aead_aes_gcm_tls12_ctx {
 OPENSSL_STATIC_ASSERT(sizeof(((EVP_AEAD_CTX *)NULL)->state) >=
                           sizeof(struct aead_aes_gcm_tls12_ctx),
                       "AEAD state is too small");
-#if defined(__GNUC__) || defined(__clang__)
+#if (defined(__GNUC__) || defined(__clang__)) && !(defined(__ORBIS__) || defined(__PROSPERO__))
 OPENSSL_STATIC_ASSERT(alignof(union evp_aead_ctx_st_state) >=
                           alignof(struct aead_aes_gcm_tls12_ctx),
                       "AEAD state has insufficient alignment");
@@ -1137,7 +1137,7 @@ struct aead_aes_gcm_tls13_ctx {
 OPENSSL_STATIC_ASSERT(sizeof(((EVP_AEAD_CTX *)NULL)->state) >=
                           sizeof(struct aead_aes_gcm_tls13_ctx),
                       "AEAD state is too small");
-#if defined(__GNUC__) || defined(__clang__)
+#if (defined(__GNUC__) || defined(__clang__)) && !(defined(__ORBIS__) || defined(__PROSPERO__))
 OPENSSL_STATIC_ASSERT(alignof(union evp_aead_ctx_st_state) >=
                           alignof(struct aead_aes_gcm_tls13_ctx),
                       "AEAD state has insufficient alignment");

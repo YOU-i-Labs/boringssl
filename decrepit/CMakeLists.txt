@@ -1,3 +1,5 @@
+project(BoringSSL_decrepit LANGUAGES C)
+
 include_directories(../include)
 
 add_library(

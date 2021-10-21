@@ -128,7 +128,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CLANG)
   # Note clang-cl is odd and sets both CLANG and MSVC. We base our configuration
   # primarily on our normal Clang one.
   if (TIZEN-NACL OR PLAYSTATION)
-    set(C_CXX_FLAGS "-Wformat=2 -Wsign-compare -Wmissing-field-initializers -Wwrite-strings")
+    set(C_CXX_FLAGS "-Wformat=2 -Wsign-compare -Wmissing-field-initializers -Wwrite-strings -Wno-implicit-fallthrough")
   else()
     set(C_CXX_FLAGS "-Werror -Wformat=2 -Wsign-compare -Wmissing-field-initializers -Wwrite-strings")
   endif()
@@ -594,7 +594,9 @@ if (BUILD_TOOLS)
   add_subdirectory(util/fipstools/cavp)
   add_subdirectory(util/fipstools/acvp/modulewrapper)
 endif()
+if (NOT PLAYSTATION)
 add_subdirectory(decrepit)
+endif()
 
 if(FUZZ)
   if(LIBFUZZER_FROM_DEPS)
