@@ -68,7 +68,7 @@ OPENSSL_MSVC_PRAGMA(warning(push, 3))
 OPENSSL_MSVC_PRAGMA(warning(pop))
 
 OPENSSL_MSVC_PRAGMA(comment(lib, "Ws2_32.lib"))
-#elif defined(__ORBIS__)
+#elif defined(__ORBIS__) || defined(__PROSPERO__)
 #include <YiPort.h>
 #include <unistd.h>
 #else
@@ -117,7 +117,7 @@ static int sock_read(BIO *b, char *out, int outl) {
   bio_clear_socket_error();
 #if defined(OPENSSL_WINDOWS)
   ret = recv(b->num, out, outl, 0);
-#elif defined(__ORBIS__)
+#elif defined(__ORBIS__) || defined(__PROSPERO__)
   ret = YiNetReceive(b->num, out, outl, 0);
 #else
   ret = read(b->num, out, outl);
@@ -137,7 +137,7 @@ static int sock_write(BIO *b, const char *in, int inl) {
   bio_clear_socket_error();
 #if defined(OPENSSL_WINDOWS)
   ret = send(b->num, in, inl, 0);
-#elif defined(__ORBIS__)
+#elif defined(__ORBIS__) || defined(__PROSPERO__)
   ret = YiNetSend(b->num, in, inl, 0);
 #else
   ret = write(b->num, in, inl);

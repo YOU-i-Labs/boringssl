@@ -18,7 +18,7 @@
 
 #include <openssl/rand.h>
 
-#if !defined(OPENSSL_WINDOWS) && !defined(__ORBIS__) && !defined(OPENSSL_FUCHSIA) && \
+#if !defined(OPENSSL_WINDOWS) && !defined(__ORBIS__) && !defined(__PROSPERO__) && !defined(OPENSSL_FUCHSIA) && \
     !defined(BORINGSSL_UNSAFE_DETERMINISTIC_MODE) && !defined(OPENSSL_TRUSTY)
 
 #include <assert.h>
@@ -331,7 +331,7 @@ void CRYPTO_sysrand(uint8_t *out, size_t requested) {
 #endif
 }
 
-#elif defined(__ORBIS__) && defined(YI_PORT_FILE_REQUIRED) && !defined(BORINGSSL_UNSAFE_DETERMINISTIC_MODE)
+#elif (defined(__ORBIS__) || defined(__PROSPERO__)) && defined(YI_PORT_FILE_REQUIRED) && !defined(BORINGSSL_UNSAFE_DETERMINISTIC_MODE)
 
 #include <YiPort.h>
 
