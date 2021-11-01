@@ -4,9 +4,28 @@
 
 # This file is created by generate_build_files.py. Do not edit manually.
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.2)
 
-project(BoringSSL LANGUAGES C CXX)
+# Report AppleClang separately from Clang. Their version numbers are different.
+# https://cmake.org/cmake/help/v3.0/policy/CMP0025.html
+if(POLICY CMP0025)
+  cmake_policy(SET CMP0025 NEW)
+endif()
+
+project(BoringSSL VERSION 0.0.0 LANGUAGES C CXX)
+
+###############
+### Install ###
+###############
+set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
+set(config_install_dir "lib/cmake/${PROJECT_NAME}")
+set(include_install_dir "include")
+set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
+set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
+set(targets_export_name "${PROJECT_NAME}Targets")
+set(namespace "${PROJECT_NAME}::")
+
+option(BUILD_TOOLS "Build boringssl tools." ON)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CLANG 1)
@@ -619,6 +638,7 @@ add_library(
   src/ssl/tls_record.cc
 )
 
+if (BUILD_TOOLS)
 add_executable(
   bssl
 
@@ -642,11 +662,64 @@ add_executable(
 
 target_link_libraries(bssl ssl crypto)
 
-if(NOT WIN32 AND NOT ANDROID)
-  target_link_libraries(crypto pthread)
-endif()
-
 if(WIN32)
   target_link_libraries(bssl ws2_32)
 endif()
+
+endif(BUILD_TOOLS)
+
+if(NOT WIN32 AND NOT ANDROID AND NOT PLAYSTATION)
+  target_link_libraries(crypto pthread)
+endif()
+
+
+### install
+
+install(
+  TARGETS crypto
+  EXPORT "${targets_export_name}"
+  LIBRARY DESTINATION "lib"
+  ARCHIVE DESTINATION "lib"
+  RUNTIME DESTINATION "bin"
+  INCLUDES DESTINATION "${include_install_dir}"
+  )
+
+install(
+  TARGETS ssl
+  EXPORT "${targets_export_name}"
+  LIBRARY DESTINATION "lib"
+  ARCHIVE DESTINATION "lib"
+  RUNTIME DESTINATION "bin"
+  INCLUDES DESTINATION "${include_install_dir}"
+  )
+
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  "${version_config}" COMPATIBILITY SameMajorVersion
+  )
+
+# Note: use 'targets_export_name'
+configure_package_config_file(
+  "${PROJECT_SOURCE_DIR}/cmake/Config.cmake.in"
+  "${project_config}"
+  INSTALL_DESTINATION "${config_install_dir}"
+  )
+
+install(
+  DIRECTORY "src/include/openssl" # No trailing slash so whole folder is installed
+  DESTINATION "${include_install_dir}"
+  FILES_MATCHING PATTERN "*.h"
+  )
+
+install(
+  FILES "${project_config}" "${version_config}"
+  DESTINATION "${config_install_dir}"
+  )
+
+install(
+  EXPORT "${targets_export_name}"
+  NAMESPACE "${namespace}"
+  DESTINATION "${config_install_dir}"
+  )
 
