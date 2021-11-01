@@ -38,7 +38,8 @@
 #endif
 
 #if (defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)) && \
-    (defined(__ARM_NEON__) || defined(__ARM_NEON))
+    (defined(__ARM_NEON__) || defined(__ARM_NEON)) && \
+    !defined(__native_client__)
 #include <arm_neon.h>
 #endif
 
