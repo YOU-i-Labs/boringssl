@@ -38,7 +38,8 @@
 #endif
 
 #if (defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)) && \
-    (defined(__ARM_NEON__) || defined(__ARM_NEON))
+    (defined(__ARM_NEON__) || defined(__ARM_NEON)) && \
+    !defined(__native_client__)
 #include <arm_neon.h>
 #endif
 
@@ -189,7 +190,8 @@ static inline vec_t vec_broadcast_bit(vec_t a) {
 #define vec_get_word(v, i) _mm_extract_epi16(v, i)
 
 #elif (defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)) && \
-    (defined(__ARM_NEON__) || defined(__ARM_NEON))
+    (defined(__ARM_NEON__) || defined(__ARM_NEON)) && \
+    !defined(__native_client__)
 
 #define HRSS_HAVE_VECTOR_UNIT
 typedef uint16x8_t vec_t;
@@ -1189,7 +1191,7 @@ static void poly_mul_vec(struct poly *out, const struct poly *x,
   OPENSSL_memset((uint16_t *)&x->v[N], 0, 3 * sizeof(uint16_t));
   OPENSSL_memset((uint16_t *)&y->v[N], 0, 3 * sizeof(uint16_t));
 
-#if !(defined(__ORBIS__) || defined(__PROSPERO__))
+#if !(defined(__ORBIS__) || defined(__PROSPERO__) || defined(__native_client__))
   OPENSSL_STATIC_ASSERT(sizeof(out->v) == sizeof(vec_t) * VECS_PER_POLY,
                         "struct poly is the wrong size");
   OPENSSL_STATIC_ASSERT(alignof(struct poly) == alignof(vec_t),
