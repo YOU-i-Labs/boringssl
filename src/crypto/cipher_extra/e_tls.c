@@ -48,7 +48,7 @@ OPENSSL_STATIC_ASSERT(EVP_MAX_MD_SIZE < 256,
 OPENSSL_STATIC_ASSERT(sizeof(((EVP_AEAD_CTX *)NULL)->state) >=
                           sizeof(AEAD_TLS_CTX),
                       "AEAD state is too small");
-#if defined(__GNUC__) || defined(__clang__)
+#if (defined(__GNUC__) || defined(__clang__)) && !(defined(__ORBIS__) || defined(__PROSPERO__))
 OPENSSL_STATIC_ASSERT(alignof(union evp_aead_ctx_st_state) >=
                           alignof(AEAD_TLS_CTX),
                       "AEAD state has insufficient alignment");

@@ -388,4 +388,17 @@ int CRYPTO_sysrand_if_available(uint8_t *out, size_t requested) {
   }
 }
 
+#elif defined(__ORBIS__) || defined(__PROSPERO__)
+
+#include <YiPort.h>
+
+void CRYPTO_sysrand(uint8_t *out, size_t requested) {
+  if (requested == 0) {
+    return;
+  }
+
+  YiPortGetRandomNumber((void *)out, requested);
+}
+
+
 #endif  // OPENSSL_URANDOM

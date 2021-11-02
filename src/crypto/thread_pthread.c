@@ -26,7 +26,7 @@
 
 OPENSSL_STATIC_ASSERT(sizeof(CRYPTO_MUTEX) >= sizeof(pthread_rwlock_t),
                       "CRYPTO_MUTEX is too small");
-#if defined(__GNUC__) || defined(__clang__)
+#if (defined(__GNUC__) || defined(__clang__)) && !(defined(__ORBIS__) || defined(__PROSPERO__))
 OPENSSL_STATIC_ASSERT(alignof(CRYPTO_MUTEX) >= alignof(pthread_rwlock_t),
                       "CRYPTO_MUTEX has insufficient alignment");
 #endif

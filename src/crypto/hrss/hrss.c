@@ -1189,10 +1189,12 @@ static void poly_mul_vec(struct poly *out, const struct poly *x,
   OPENSSL_memset((uint16_t *)&x->v[N], 0, 3 * sizeof(uint16_t));
   OPENSSL_memset((uint16_t *)&y->v[N], 0, 3 * sizeof(uint16_t));
 
+#if !(defined(__ORBIS__) || defined(__PROSPERO__))
   OPENSSL_STATIC_ASSERT(sizeof(out->v) == sizeof(vec_t) * VECS_PER_POLY,
                         "struct poly is the wrong size");
   OPENSSL_STATIC_ASSERT(alignof(struct poly) == alignof(vec_t),
                         "struct poly has incorrect alignment");
+#endif
 
   vec_t prod[VECS_PER_POLY * 2];
   vec_t scratch[172];

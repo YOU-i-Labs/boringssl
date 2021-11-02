@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 
-#if !defined(OPENSSL_WINDOWS) && !defined(OPENSSL_FUCHSIA) && \
+#if !defined(OPENSSL_WINDOWS) && !defined(OPENSSL_FUCHSIA) && !defined(__ORBIS__) && !defined(__PROSPERO__) && \
     !defined(BORINGSSL_UNSAFE_DETERMINISTIC_MODE) && !defined(OPENSSL_TRUSTY)
 #define OPENSSL_URANDOM
 #endif
