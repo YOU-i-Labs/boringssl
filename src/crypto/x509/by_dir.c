@@ -65,6 +65,10 @@
 #include <openssl/thread.h>
 #include <openssl/x509.h>
 
+#if defined(YI_PORT_FILE_REQUIRED)
+#include <YiPort.h>
+#endif 
+
 #if !defined(OPENSSL_TRUSTY)
 
 #include "../internal.h"
