@@ -258,6 +258,8 @@ if(WIN32)
   # A bug in CMake < 3.13.0 may cause the space in this value to
   # cause issues when building with NASM. In that case, update CMake.
   add_definitions("-D_STL_EXTRA_DISABLED_WARNINGS=4774 4987")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -wd4255")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -wd4255")
 endif()
 
 if((CMAKE_COMPILER_IS_GNUCXX AND CMAKE_C_COMPILER_VERSION VERSION_GREATER "4.7.99") OR
