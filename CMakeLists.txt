@@ -32,6 +32,14 @@ if(PS4)
   add_definitions(-DOPENSSL_PS4)
 endif()
 
+# We need to set the go executable directly or else we run into the following bug:
+# https://bugs.launchpad.net/snapd/+bug/1921110
+find_program(GO_EXECUTABLE
+    NAMES go
+    HINTS /snap/go/current/bin
+)
+mark_as_advanced(GO_EXECUTABLE)
+
 if(ANDROID)
   # Android-NDK CMake files reconfigure the path and so Go and Perl won't be
   # found. However, ninja will still find them in $PATH if we just name them.
