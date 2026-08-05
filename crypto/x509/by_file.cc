@@ -19,6 +19,10 @@
 
 #include "internal.h"
 
+#if defined(YI_PORT_FILE_REQUIRED)
+#include <YiPort.h>
+#endif
+
 
 static int by_file_ctrl(X509_LOOKUP *ctx, int cmd, const char *argc, long argl,
                         char **ret);

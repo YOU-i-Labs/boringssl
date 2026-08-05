@@ -146,4 +146,19 @@ void bssl::CRYPTO_sysrand(uint8_t *out, size_t len) {
   }
 }
 
+#elif defined(OPENSSL_RAND_YI_PORT)
+
+// TODO(youi): re-ported from 0.0.2-youi6 (commit 58e1ba5f8), not yet
+// validated against the PS4/PS5 SDK toolchain.
+#include <YiPort.h>
+
+void bssl::CRYPTO_init_sysrand() {}
+
+void bssl::CRYPTO_sysrand(uint8_t *out, size_t requested) {
+  if (requested == 0) {
+    return;
+  }
+  YiPortGetRandomNumber(static_cast<void *>(out), requested);
+}
+
 #endif  // OPENSSL_RAND_URANDOM

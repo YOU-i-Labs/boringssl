@@ -27,6 +27,10 @@
 #include "../mem_internal.h"
 #include "internal.h"
 
+#if defined(YI_PORT_FILE_REQUIRED)
+#include <YiPort.h>
+#endif
+
 
 BSSL_NAMESPACE_BEGIN
 

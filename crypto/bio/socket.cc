@@ -22,11 +22,16 @@
 
 #include <algorithm>
 
-#if !defined(OPENSSL_WINDOWS)
-#include <unistd.h>
-#else
+#if defined(OPENSSL_WINDOWS)
 #include <winsock2.h>
 OPENSSL_MSVC_PRAGMA(comment(lib, "Ws2_32.lib"))
+#elif defined(__ORBIS__) || defined(__PROSPERO__)
+// TODO(youi): re-ported from 0.0.2-youi6 (commit 58e1ba5f8), not yet
+// validated against the PS4/PS5 SDK toolchain.
+#include <YiPort.h>
+#include <unistd.h>
+#else
+#include <unistd.h>
 #endif
 
 #include "internal.h"
@@ -53,6 +58,8 @@ static int sock_read(BIO *b, char *out, int outl) {
   bio_clear_socket_error();
 #if defined(OPENSSL_WINDOWS)
   int ret = recv(FromOpaque(b)->num, out, outl, 0);
+#elif defined(__ORBIS__) || defined(__PROSPERO__)
+  int ret = (int)YiNetReceive(FromOpaque(b)->num, out, outl, 0);
 #else
   int ret = (int)read(FromOpaque(b)->num, out, outl);
 #endif
@@ -71,6 +78,8 @@ static int sock_write_ex(BIO *b, const char *in, size_t inl,
 #if defined(OPENSSL_WINDOWS)
   inl = std::min(inl, size_t{INT_MAX});
   int ret = send(FromOpaque(b)->num, in, static_cast<int>(inl), 0);
+#elif defined(__ORBIS__) || defined(__PROSPERO__)
+  ssize_t ret = YiNetSend(FromOpaque(b)->num, in, inl, 0);
 #else
   ssize_t ret = write(FromOpaque(b)->num, in, inl);
 #endif

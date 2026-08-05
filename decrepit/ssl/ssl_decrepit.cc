@@ -14,7 +14,13 @@
 
 #include <openssl/ssl.h>
 
+// TODO(youi): re-ported from 0.0.2-youi6 (commit 58e1ba5f8), not yet
+// validated against the PS4/PS5 SDK toolchain. Upstream has since added its
+// own !defined(OPENSSL_NO_FILESYSTEM) guard, which may already cover
+// PS4/PS5 depending on how that macro is set in the youiplatform build --
+// confirm before assuming this addition is still necessary.
 #if !defined(OPENSSL_WINDOWS) && !defined(OPENSSL_PNACL) && \
+    !defined(__ORBIS__) && !defined(__PROSPERO__) && \
     !defined(OPENSSL_NO_FILESYSTEM)
 
 #include <dirent.h>

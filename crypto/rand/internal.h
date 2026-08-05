@@ -26,6 +26,11 @@
 #define OPENSSL_RAND_WINDOWS
 #elif defined(OPENSSL_LINUX)
 #define OPENSSL_RAND_URANDOM
+#elif defined(__ORBIS__) || defined(__PROSPERO__)
+// TODO(youi): re-ported from 0.0.2-youi6 (commit 58e1ba5f8), not yet
+// validated against the PS4/PS5 SDK toolchain. Without this, PS4/PS5 would
+// silently fall through to OPENSSL_RAND_GETENTROPY below.
+#define OPENSSL_RAND_YI_PORT
 #elif defined(OPENSSL_APPLE) && !defined(OPENSSL_MACOS)
 // Unlike macOS, iOS and similar hide away getentropy().
 #define OPENSSL_RAND_IOS

@@ -26,14 +26,24 @@
 #include <string.h>
 #include <sys/types.h>
 
-#if !defined(OPENSSL_WINDOWS)
+#if defined(OPENSSL_WINDOWS)
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#elif defined(__ORBIS__) || defined(__PROSPERO__)
+// TODO(youi): re-ported from 0.0.2-youi6 (commit 58e1ba5f8), not yet
+// validated against the PS4/PS5 SDK toolchain. That patch replaced
+// <netdb.h> with <YiPort.h> for getaddrinfo()/freeaddrinfo() support, but
+// this file has since grown direct poll()/errno usage that didn't exist
+// when the original patch was written -- confirm YiPort.h (or the platform
+// libc) still provides those before shipping.
+#include <errno.h>
+#include <poll.h>
+#include <YiPort.h>
+#else
 #include <errno.h>
 #include <netdb.h>
 #include <poll.h>
 #include <unistd.h>
-#else
-#include <winsock2.h>
-#include <ws2tcpip.h>
 #endif
 
 #include "internal.h"
