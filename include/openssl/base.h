@@ -49,6 +49,10 @@
 extern "C" {
 #endif
 
+#if defined(X509_NAME)
+#undef X509_NAME
+#endif
+
 
 #if defined(__APPLE__)
 // Note `TARGET_OS_MAC` is set for all Apple OS variants. `TARGET_OS_OSX`
