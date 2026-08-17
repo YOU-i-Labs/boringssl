@@ -871,4 +871,14 @@ if(INSTALL_ENABLED)
           NAMESPACE OpenSSL::
           DESTINATION lib/cmake/OpenSSL)
   install(FILES cmake/OpenSSLConfig.cmake DESTINATION lib/cmake/OpenSSL)
+
+  # youi: re-export the same target set under the "BoringSSL" package name so
+  # consumers that look for find_package(BoringSSL CONFIG) keep working, as
+  # they did against the old YOU-i-Labs fork (which used a "BoringSSL"-named
+  # CMake project). Upstream only installs itself as "OpenSSL" above.
+  install(EXPORT OpenSSLTargets
+          FILE BoringSSLTargets.cmake
+          NAMESPACE BoringSSL::
+          DESTINATION lib/cmake/BoringSSL)
+  install(FILES cmake/BoringSSLConfig.cmake DESTINATION lib/cmake/BoringSSL)
 endif()
