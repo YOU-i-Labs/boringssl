@@ -18,6 +18,22 @@
 # cmake/OpenSSLConfig.cmake, but exposes BoringSSL::Crypto / BoringSSL::SSL
 # imported targets instead of OpenSSL::Crypto / OpenSSL::SSL.
 
+# youi: on platforms where BoringSSL links against pthreads (i.e. not
+# Generic/Android - see the "find_package(Threads REQUIRED)" guard in the
+# top-level CMakeLists.txt), the "crypto" target is linked with
+# Threads::Threads using the old, no-keyword target_link_libraries()
+# signature, which CMake treats as PUBLIC. That bakes a literal
+# "Threads::Threads" reference into BoringSSLTargets.cmake's exported
+# INTERFACE_LINK_LIBRARIES for BoringSSL::Crypto below, and CMake validates
+# target-shaped (::-containing) names in that property eagerly, at
+# set_target_properties() time - so Threads::Threads must already exist as
+# a target *before* we include(BoringSSLTargets.cmake), or that include
+# itself fails with "the target was not found". Resolve it here exactly the
+# way our curl fork's own generated CURLConfig.cmake does for the same
+# BoringSSL/AWS-LC threading requirement.
+include(CMakeFindDependencyMacro)
+find_dependency(Threads)
+
 include(${CMAKE_CURRENT_LIST_DIR}/BoringSSLTargets.cmake)
 
 # youi: the old YOU-i-Labs BoringSSL fork exposed lowercase

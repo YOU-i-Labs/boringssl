@@ -27,8 +27,11 @@ extern "C++" {
 #include <algorithm>
 #include <array>
 #include <limits>
-#include <string_view>
 #include <type_traits>
+
+#if __cplusplus >= 201703L
+#include <string_view>
+#endif
 
 #if __has_include(<version>)
 #include <version>
@@ -39,7 +42,25 @@ extern "C++" {
 #endif
 
 BSSL_NAMESPACE_BEGIN
-inline constexpr size_t dynamic_extent = std::numeric_limits<size_t>::max();
+// YOU-i: dropped "inline" (a C++17 requirement for namespace-scope
+// variables) so this remains valid under C++11/14. Each translation unit
+// gets its own internal-linkage copy, which is harmless since this is only
+// ever used as a compile-time constant value here, never ODR-used by
+// address across translation units.
+constexpr size_t dynamic_extent = std::numeric_limits<size_t>::max();
+
+// YOU-i: C++11 restricts a constexpr function's body to a single return
+// statement, so functions below using the multi-statement BSSL_CHECK macro
+// cannot be constexpr under C++11 (this restriction was relaxed in C++14).
+// constexpr here is only a compile-time-evaluability nicety - never
+// required for correctness, since these bounds checks only matter at
+// runtime anyway - so fall back to an ordinary function under C++11 rather
+// than dropping the checks or rewriting them into single-expression form.
+#if __cplusplus >= 201402L
+#define BSSL_SPAN_CONSTEXPR constexpr
+#else
+#define BSSL_SPAN_CONSTEXPR inline
+#endif
 
 template <typename T, size_t N = dynamic_extent>
 class Span;
@@ -59,11 +80,19 @@ inline constexpr bool std::ranges::enable_borrowed_range<bssl::Span<T, N>> =
 BSSL_NAMESPACE_BEGIN
 
 namespace internal {
+
+// YOU-i: enable_if_t/remove_cv_t (C++11-compatible backports of the C++14
+// std::enable_if_t/std::remove_cv_t convenience aliases) are defined once in
+// base.h, which every public header (including this one) already includes.
+// The std::is_*_v variable-template trait aliases (C++17) have no
+// C++11/14-compatible drop-in - their call sites below use the equivalent
+// ::value form directly instead.
+
 template <typename T>
 class SpanBase {
   // Put comparison operator implementations into a base class with const T, so
   // they can be used with any type that implicitly converts into a Span.
-  static_assert(std::is_const_v<T>,
+  static_assert(std::is_const<T>::value,
                 "Span<T> must be derived from SpanBase<const T>");
 
   friend bool operator==(Span<T> lhs, Span<T> rhs) {
@@ -77,7 +106,7 @@ class SpanBase {
 template <typename T, size_t N>
 class SpanStorage : private SpanBase<const T> {
  public:
-  constexpr SpanStorage(T *data, size_t size) : data_(data) {
+  BSSL_SPAN_CONSTEXPR SpanStorage(T *data, size_t size) : data_(data) {
     BSSL_CHECK(size == N);
   }
   constexpr T *data() const { return data_; }
@@ -102,9 +131,9 @@ class SpanStorage<T, dynamic_extent> : private SpanBase<const T> {
 // Heuristically test whether C is a container type that can be converted into
 // a Span<T> by checking for data() and size() member functions.
 template <typename C, typename T>
-using EnableIfContainer = std::enable_if_t<
-    std::is_convertible_v<decltype(std::declval<C>().data()), T *> &&
-    std::is_integral_v<decltype(std::declval<C>().size())>>;
+using EnableIfContainer = enable_if_t<
+    std::is_convertible<decltype(std::declval<C>().data()), T *>::value &&
+    std::is_integral<decltype(std::declval<C>().size())>::value>;
 
 // A fake type used to be able to SFINAE between two different container
 // constructors - by giving one this as a second default argument, and one not.
@@ -147,7 +176,7 @@ template <typename T, size_t N>
 class Span : public internal::SpanStorage<T, N> {
  public:
   using element_type = T;
-  using value_type = std::remove_cv_t<T>;
+  using value_type = internal::remove_cv_t<T>;
   using size_type = size_t;
   using difference_type = ptrdiff_t;
   using pointer = T *;
@@ -158,7 +187,7 @@ class Span : public internal::SpanStorage<T, N> {
   using const_iterator = const T *;
 
   template <typename U = T,
-            typename = std::enable_if_t<N == 0 || N == dynamic_extent, U>>
+            typename = internal::enable_if_t<N == 0 || N == dynamic_extent, U>>
   constexpr Span() : internal::SpanStorage<T, N>(nullptr, 0) {}
 
   // NOTE: This constructor may abort() at runtime if len differs from the
@@ -166,36 +195,37 @@ class Span : public internal::SpanStorage<T, N> {
   constexpr Span(T *ptr, size_t len) : internal::SpanStorage<T, N>(ptr, len) {}
 
   template <size_t NA,
-            typename = std::enable_if_t<N == NA || N == dynamic_extent>>
+            typename = internal::enable_if_t<N == NA || N == dynamic_extent>>
   // NOLINTNEXTLINE(google-explicit-constructor): same as std::span.
   constexpr Span(T (&array)[NA]) : internal::SpanStorage<T, N>(array, NA) {}
 
   // TODO(crbug.com/457351017): Add tests for these c'tors.
   template <size_t NA, typename U,
             typename = internal::EnableIfContainer<std::array<U, NA>, T>,
-            typename = std::enable_if_t<N == NA || N == dynamic_extent>>
+            typename = internal::enable_if_t<N == NA || N == dynamic_extent>>
   // NOLINTNEXTLINE(google-explicit-constructor): same as std::span.
   constexpr Span(std::array<U, NA> &array)
       : internal::SpanStorage<T, N>(array.data(), NA) {}
 
   template <size_t NA, typename U,
             typename = internal::EnableIfContainer<const std::array<U, NA>, T>,
-            typename = std::enable_if_t<N == NA || N == dynamic_extent>>
+            typename = internal::enable_if_t<N == NA || N == dynamic_extent>>
   // NOLINTNEXTLINE(google-explicit-constructor): same as std::span.
   constexpr Span(const std::array<U, NA> &array)
       : internal::SpanStorage<T, N>(array.data(), NA) {}
 
   template <
       size_t NA, typename U,
-      typename = std::enable_if_t<std::is_convertible_v<U (*)[], T (*)[]>>,
-      typename = std::enable_if_t<N == dynamic_extent || N == NA>>
+      typename = internal::enable_if_t<
+          std::is_convertible<U (*)[], T (*)[]>::value>,
+      typename = internal::enable_if_t<N == dynamic_extent || N == NA>>
   // NOLINTNEXTLINE(google-explicit-constructor): same as std::span.
   constexpr Span(Span<U, NA> other)
       : internal::SpanStorage<T, N>(other.data(), other.size()) {}
 
   template <typename C, typename = internal::EnableIfContainer<C, T>,
-            typename = std::enable_if_t<std::is_const_v<T>, C>,
-            typename = std::enable_if_t<N == dynamic_extent, C>>
+            typename = internal::enable_if_t<std::is_const<T>::value, C>,
+            typename = internal::enable_if_t<N == dynamic_extent, C>>
   // NOLINTNEXTLINE(google-explicit-constructor): same as std::span.
   constexpr Span(const C &container)
       : internal::SpanStorage<T, N>(container.data(), container.size()) {}
@@ -203,8 +233,8 @@ class Span : public internal::SpanStorage<T, N> {
   // NOTE: This constructor may abort() at runtime if the container's length
   // differs from the compile-time size, if any.
   template <typename C, typename = internal::EnableIfContainer<C, T>,
-            typename = std::enable_if_t<std::is_const_v<T>, C>,
-            typename = std::enable_if_t<N != dynamic_extent, C>>
+            typename = internal::enable_if_t<std::is_const<T>::value, C>,
+            typename = internal::enable_if_t<N != dynamic_extent, C>>
   constexpr explicit Span(const C &container,
                           internal::AllowRedeclaringConstructor = {})
       : internal::SpanStorage<T, N>(container.data(), container.size()) {}
@@ -212,7 +242,7 @@ class Span : public internal::SpanStorage<T, N> {
   // NOTE: This constructor may abort() at runtime if the container's length
   // differs from the compile-time size, if any.
   template <typename C, typename = internal::EnableIfContainer<C, T>,
-            typename = std::enable_if_t<!std::is_const_v<T>, C>>
+            typename = internal::enable_if_t<!std::is_const<T>::value, C>>
   constexpr explicit Span(C &container)
       : internal::SpanStorage<T, N>(container.data(), container.size()) {}
 
@@ -225,16 +255,16 @@ class Span : public internal::SpanStorage<T, N> {
   constexpr iterator end() const { return data() + size(); }
   constexpr const_iterator cend() const { return end(); }
 
-  constexpr T &front() const {
+  BSSL_SPAN_CONSTEXPR T &front() const {
     BSSL_CHECK(size() != 0);
     return data()[0];
   }
-  constexpr T &back() const {
+  BSSL_SPAN_CONSTEXPR T &back() const {
     BSSL_CHECK(size() != 0);
     return data()[size() - 1];
   }
 
-  constexpr T &operator[](size_t i) const {
+  BSSL_SPAN_CONSTEXPR T &operator[](size_t i) const {
     BSSL_CHECK(i < size());
     return data()[i];
   }
@@ -257,7 +287,7 @@ class Span : public internal::SpanStorage<T, N> {
   // NOTE: This method may abort() at runtime if pos or len are out of range.
   // NOTE: As opposed to std::span, the `dynamic_extent` value of `len` is not
   // magical here. This gets rid of a lot of runtime checks.
-  constexpr Span<T> subspan(size_t pos, size_t len) const {
+  BSSL_SPAN_CONSTEXPR Span<T> subspan(size_t pos, size_t len) const {
     // absl::Span throws an exception here. Note std::span and Chromium
     // base::span forbid pos + len being out of range, with a special case at
     // npos/dynamic_extent, whereas absl::Span::subspan clips the span. This
@@ -268,7 +298,7 @@ class Span : public internal::SpanStorage<T, N> {
   }
 
   // NOTE: This method may abort() at runtime if pos is out of range.
-  constexpr Span<T> subspan(size_t pos) const {
+  BSSL_SPAN_CONSTEXPR Span<T> subspan(size_t pos) const {
     // absl::Span throws an exception here.
     BSSL_CHECK(pos <= size());
     return Span<T>(data() + pos, size() - pos);
@@ -276,7 +306,7 @@ class Span : public internal::SpanStorage<T, N> {
 
   // NOTE: This method may abort() at runtime if len is out of range.
   template <size_t pos, size_t len = dynamic_extent>
-  constexpr Span<T, SubspanTypeOutLen(N, pos, len)> subspan() const {
+  BSSL_SPAN_CONSTEXPR Span<T, SubspanTypeOutLen(N, pos, len)> subspan() const {
     // absl::Span throws an exception here. Note std::span and Chromium
     // base::span forbid pos + len being out of range, with a special case at
     // npos/dynamic_extent, whereas absl::Span::subspan clips the span. This
@@ -288,32 +318,39 @@ class Span : public internal::SpanStorage<T, N> {
   }
 
   // NOTE: This method may abort() at runtime if len is out of range.
-  constexpr Span<T> first(size_t len) const {
+  BSSL_SPAN_CONSTEXPR Span<T> first(size_t len) const {
     BSSL_CHECK(len <= size());
     return Span<T>(data(), len);
   }
 
   // NOTE: This method may abort() at runtime if len is out of range.
   template <size_t len>
-  constexpr Span<T, len> first() const {
+  BSSL_SPAN_CONSTEXPR Span<T, len> first() const {
     BSSL_CHECK(len <= size());
     return Span<T, len>(data(), len);
   }
 
   // NOTE: This method may abort() at runtime if len is out of range.
-  constexpr Span<T> last(size_t len) const {
+  BSSL_SPAN_CONSTEXPR Span<T> last(size_t len) const {
     BSSL_CHECK(len <= size());
     return Span<T>(data() + size() - len, len);
   }
 
   // NOTE: This method may abort() at runtime if len is out of range.
   template <size_t len>
-  constexpr Span<T, len> last() const {
+  BSSL_SPAN_CONSTEXPR Span<T, len> last() const {
     BSSL_CHECK(len <= size());
     return Span<T, len>(data() + size() - len, len);
   }
 };
 
+#undef BSSL_SPAN_CONSTEXPR
+
+#if __cplusplus >= 201703L
+// YOU-i: class template argument deduction guides are C++17-only syntax
+// (there is no C++11/14-compatible equivalent), so this whole block is
+// unavailable pre-C++17. Consumers built with an older standard must spell
+// out Span's template arguments explicitly instead of relying on CTAD.
 template <typename T>
 Span(T *, size_t) -> Span<T>;
 template <typename T, size_t size>
@@ -327,6 +364,7 @@ template <
     typename T = std::remove_pointer_t<decltype(std::declval<C>().data())>,
     typename = internal::EnableIfContainer<C, T>>
 Span(C &) -> Span<T>;
+#endif  // __cplusplus >= 201703L
 
 template <typename T>
 constexpr Span<T> MakeSpan(T *ptr, size_t size) {
@@ -359,6 +397,9 @@ constexpr Span<const T, size> MakeConstSpan(T (&array)[size]) {
   return array;
 }
 
+#if __cplusplus >= 201703L
+// YOU-i: std::string_view is C++17-only; these two helpers are simply
+// unavailable to consumers built with an older standard.
 inline Span<const uint8_t> StringAsBytes(std::string_view s) {
   return MakeConstSpan(reinterpret_cast<const uint8_t *>(s.data()), s.size());
 }
@@ -366,6 +407,7 @@ inline Span<const uint8_t> StringAsBytes(std::string_view s) {
 inline std::string_view BytesAsStringView(bssl::Span<const uint8_t> b) {
   return std::string_view(reinterpret_cast<const char *>(b.data()), b.size());
 }
+#endif  // __cplusplus >= 201703L
 
 BSSL_NAMESPACE_END
 

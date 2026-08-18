@@ -45,7 +45,11 @@ struct cbs_st {
   // Allow implicit conversions to and from bssl::Span<const uint8_t>.
   cbs_st(bssl::Span<const uint8_t> span)
       : data(span.data()), len(span.size()) {}
-  operator bssl::Span<const uint8_t>() const { return bssl::Span(data, len); }
+  // YOU-i: spelled out explicitly (rather than relying on class template
+  // argument deduction) so this remains valid pre-C++17.
+  operator bssl::Span<const uint8_t>() const {
+    return bssl::Span<const uint8_t>(data, len);
+  }
 
   // Defining any constructors requires we explicitly default the others.
   cbs_st() = default;

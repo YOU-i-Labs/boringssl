@@ -406,10 +406,26 @@ typedef void *OPENSSL_BLOCK;
 extern "C++" {
 
 #include <memory>
+#include <type_traits>
 
 BSSL_NAMESPACE_BEGIN
 
 namespace internal {
+
+// YOU-i: std::enable_if_t / std::remove_cv_t are C++14 convenience aliases
+// for typename std::enable_if<...>::type / typename std::remove_cv<...>::type
+// and are unavailable when building consumers pinned to C++11 (e.g. some
+// castlabs subtrees still targeting older platforms). Provide our own
+// C++11-compatible equivalents here (alias templates are a C++11 feature)
+// so headers throughout this tree can use them unconditionally. Defined
+// once, in this foundational header that every other public header
+// includes, to avoid "redefines default argument" errors from duplicate
+// declarations.
+template <bool B, typename T = void>
+using enable_if_t = typename std::enable_if<B, T>::type;
+
+template <typename T>
+using remove_cv_t = typename std::remove_cv<T>::type;
 
 // The Enable parameter is ignored and only exists so specializations can use
 // SFINAE.
