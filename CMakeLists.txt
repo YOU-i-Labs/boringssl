@@ -872,6 +872,24 @@ if(INSTALL_ENABLED)
           DESTINATION lib/cmake/OpenSSL)
   install(FILES cmake/OpenSSLConfig.cmake DESTINATION lib/cmake/OpenSSL)
 
+  # youi: BoringSSL is "live at head" with no release versioning, so this
+  # Config package has never shipped an OpenSSLConfigVersion.cmake, and
+  # CMake reports its version as "unknown" to any find_package() version
+  # check. Without a version file, ANY consumer that requests a minimum
+  # version (e.g. find_package(OpenSSL 1 CONFIG)) gets rejected outright,
+  # even though the package is otherwise perfectly usable - see curl's
+  # curl-config.in.cmake, which hit exactly this. Ship a version file that
+  # unconditionally reports a high placeholder version (not a real BoringSSL
+  # version - there is none) so it satisfies any reasonable minimum-version
+  # request instead of failing version checks entirely.
+  include(CMakePackageConfigHelpers)
+  write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/OpenSSLConfigVersion.cmake
+    VERSION 9999.0.0
+    COMPATIBILITY AnyNewerVersion
+  )
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/OpenSSLConfigVersion.cmake DESTINATION lib/cmake/OpenSSL)
+
   # youi: re-export the same target set under the "BoringSSL" package name so
   # consumers that look for find_package(BoringSSL CONFIG) keep working, as
   # they did against the old YOU-i-Labs fork (which used a "BoringSSL"-named
@@ -881,4 +899,7 @@ if(INSTALL_ENABLED)
           NAMESPACE BoringSSL::
           DESTINATION lib/cmake/BoringSSL)
   install(FILES cmake/BoringSSLConfig.cmake DESTINATION lib/cmake/BoringSSL)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/OpenSSLConfigVersion.cmake
+          DESTINATION lib/cmake/BoringSSL
+          RENAME BoringSSLConfigVersion.cmake)
 endif()
