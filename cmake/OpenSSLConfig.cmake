@@ -44,8 +44,18 @@ macro(_openssl_config_libraries libraries target)
       list(APPEND ${libraries} ${_DEP})
     endif()
   endforeach()
-  get_property(_LOC TARGET ${target} PROPERTY LOCATION)
-  list(APPEND ${libraries} ${_LOC})
+  # youi: before CMake 3.19, reading a non-whitelisted property off an
+  # INTERFACE_LIBRARY target is a hard error, and LOCATION is not whitelisted.
+  # The recursion above reaches Threads::Threads - an interface library, and
+  # present in OpenSSL::Crypto's link interface for the reason described above -
+  # so on CMake 3.18 this aborted every consumer's find_package(OpenSSL).
+  # Interface libraries have no library file, so LOCATION is empty on newer
+  # CMake and appends nothing; skipping it is equivalent there.
+  get_property(_TYPE TARGET ${target} PROPERTY TYPE)
+  if(NOT _TYPE STREQUAL "INTERFACE_LIBRARY")
+    get_property(_LOC TARGET ${target} PROPERTY LOCATION)
+    list(APPEND ${libraries} ${_LOC})
+  endif()
 endmacro()
 
 set(OPENSSL_FOUND YES)
@@ -64,3 +74,4 @@ list(REMOVE_DUPLICATES OPENSSL_LIBRARIES)
 set(_DEP)
 set(_DEPS)
 set(_LOC)
+set(_TYPE)

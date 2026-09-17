@@ -12,10 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.22)
+# youi: upstream requires 3.22 per Google's OSS support matrix, not for any
+# feature it uses. The range form keeps policy defaults at 3.22 when the running
+# CMake is new enough, while still configuring on 3.18.
+cmake_minimum_required(VERSION 3.18...3.22)
 
 # Defer enabling C and CXX languages.
 project(BoringSSL NONE)
+
+# youi: PROJECT_IS_TOP_LEVEL requires CMake 3.21. It is a variable, not a
+# command, so on older CMake it is simply undefined and silently evaluates
+# false, dropping the run_tests target with no diagnostic. Define it explicitly.
+if(NOT DEFINED PROJECT_IS_TOP_LEVEL)
+  if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(PROJECT_IS_TOP_LEVEL ON)
+  else()
+    set(PROJECT_IS_TOP_LEVEL OFF)
+  endif()
+endif()
 
 # Don't install BoringSSL to system directories by default; it has no stable
 # ABI. Instead, default to an "install" directory under the source.
@@ -351,12 +365,20 @@ if(USE_CUSTOM_LIBCXX)
   )
   # LLVM libc++ depends on some shared headers from LLVM libc.
   target_include_directories(libcxx PRIVATE util/bot/llvm-libc)
-  set_target_properties(
-    libcxx libcxxabi PROPERTIES
-    # libc++ and libc++abi must be built in C++23 mode.
-    CXX_STANDARD 23
-    CXX_STANDARD_REQUIRED TRUE
-  )
+  # youi: CXX_STANDARD accepts the value 23 only from CMake 3.20. Below that,
+  # pass the flag directly. USE_CUSTOM_LIBCXX is Clang-only (checked above), so
+  # -std=c++23 is safe here.
+  if(CMAKE_VERSION VERSION_LESS "3.20")
+    target_compile_options(libcxx PRIVATE -std=c++23)
+    target_compile_options(libcxxabi PRIVATE -std=c++23)
+  else()
+    set_target_properties(
+      libcxx libcxxabi PROPERTIES
+      # libc++ and libc++abi must be built in C++23 mode.
+      CXX_STANDARD 23
+      CXX_STANDARD_REQUIRED TRUE
+    )
+  endif()
   # libc++abi depends on libc++ internal headers.
   set_property(TARGET libcxx libcxxabi APPEND PROPERTY INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/util/bot/libcxx/src")
   target_link_libraries(libcxx libcxxabi)

@@ -16,7 +16,9 @@
 # crbug.com/42290128, crbug.com/42290508 and crbug.com/42290554, there is enough
 # churn that we've left it alone for now.
 foreach(fuzzer ${FUZZ_SOURCES})
-  cmake_path(GET fuzzer STEM name)
+  # youi: cmake_path() requires CMake 3.20. NAME_WLE strips only the last
+  # extension, matching STEM's semantics, and is available from 3.14.
+  get_filename_component(name "${fuzzer}" NAME_WLE)
   add_executable(${name} ../${fuzzer})
   target_compile_options(${name} PRIVATE "-Wno-missing-prototypes")
   target_link_libraries(${name} ssl pki crypto)

@@ -19,8 +19,12 @@
 set(wrapper_rs wrapper_${RUST_BINDINGS}.rs)
 set(wrapper_rs_relative "${CMAKE_CURRENT_BINARY_DIR}/${wrapper_rs}")
 set(depfile_relative "${CMAKE_CURRENT_BINARY_DIR}/${wrapper_rs}.d")
-cmake_path(RELATIVE_PATH wrapper_rs_relative BASE_DIRECTORY "${CMAKE_BINARY_DIR}")
-cmake_path(RELATIVE_PATH depfile_relative BASE_DIRECTORY "${CMAKE_BINARY_DIR}")
+# youi: cmake_path() requires CMake 3.20; file(RELATIVE_PATH) is equivalent and
+# available in 3.18. Note this target still needs CMake 3.27 for the
+# $<LIST:TRANSFORM,...> generator expressions below, so RUST_BINDINGS cannot be
+# built on 3.18 regardless.
+file(RELATIVE_PATH wrapper_rs_relative "${CMAKE_BINARY_DIR}" "${wrapper_rs_relative}")
+file(RELATIVE_PATH depfile_relative "${CMAKE_BINARY_DIR}" "${depfile_relative}")
 
 if(BORINGSSL_PREFIX)
   set(BINDGEN_FLAGS "-DBORINGSSL_PREFIX=${BORINGSSL_PREFIX}")

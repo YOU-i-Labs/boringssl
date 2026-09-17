@@ -28,9 +28,19 @@ function(go_executable dest package)
   # Ninja expects the target in the depfile to match the output. This is a
   # relative path from the build directory.
   set(target "${CMAKE_CURRENT_BINARY_DIR}/${dest}")
-  cmake_path(RELATIVE_PATH target BASE_DIRECTORY "${CMAKE_BINARY_DIR}")
+  # youi: cmake_path() requires CMake 3.20. file(RELATIVE_PATH) is equivalent
+  # here and available in 3.18.
+  file(RELATIVE_PATH target "${CMAKE_BINARY_DIR}" "${target}")
 
   set(depfile "${CMAKE_CURRENT_BINARY_DIR}/${dest}.d")
+  # youi: before CMake 3.20, DEPFILE is accepted only by the Ninja generators
+  # (Makefile support landed in 3.20, Visual Studio in 3.21). Omit it on older
+  # CMake with other generators; Go sources are then not re-scanned for
+  # dependency changes, but the build is otherwise correct.
+  set(depfile_arg DEPFILE ${depfile})
+  if(CMAKE_VERSION VERSION_LESS "3.20" AND NOT CMAKE_GENERATOR MATCHES "Ninja")
+    set(depfile_arg "")
+  endif()
   add_custom_command(OUTPUT ${dest}
                       COMMAND ${GO_EXECUTABLE} build
                               -o ${CMAKE_CURRENT_BINARY_DIR}/${dest} ${package}
@@ -38,6 +48,6 @@ function(go_executable dest package)
                               -target ${target} -pkg ${package} -out ${depfile}
                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                       DEPENDS ${godeps} ${PROJECT_SOURCE_DIR}/go.mod
-                      DEPFILE ${depfile})
+                      ${depfile_arg})
 endfunction()
 
